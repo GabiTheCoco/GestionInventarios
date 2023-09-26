@@ -5,6 +5,7 @@
 #include <fstream>
 #include <sstream>
 #include <cctype>
+#include <algorithm>
 using namespace std;
 
 #define systemPause cout << setw(2) << " "; system("pause");
@@ -35,17 +36,20 @@ int buscarPosProducto(vector<Producto>);
 
 void funcionPrueba(vector<Producto>&);
 
-void actualizarNuevoProducto(vector<Producto>&);
-void mostrar_actualizarNuevoProducto(bool&);
-
-void actualizarProductos(vector<Producto>, int);
 void mostrar_actualizarProductos(bool&);
 
-void reemplazarDatosProducto(vector<Producto>&, int, int);
+void preguntaActualizacionProducto(vector<Producto>, bool&);
+void mostrar_PreguntaActualizacionProducto(bool&);
 
-void preguntaActualizacionProducto(vector<Producto>);
-void borrarProducto(vector<Producto>&);
+void borrarProducto(vector<Producto>&, bool&);
+
 void buscarProductosCoincidentes(vector<Producto>);
+void mostrar_busquedaCoincidentes(bool&);
+void buscarPorNombre(vector<Producto>);
+void buscarPorRangoPrecios(vector<Producto>);
+void buscarPorCategoria(vector<Producto>);
+void buscarPorMarca(vector<Producto>);
+
 void listarProductos(vector<Producto>&);
 
 
@@ -106,7 +110,7 @@ void menuPrincipal(Producto p, vector<Producto>&productos, bool prodRegistrado){
 				systemPause
 					break;
 			} else{
-				borrarProducto(productos);
+				borrarProducto(productos, prodRegistrado);
 				control = false;
 				break;
 			}
@@ -304,13 +308,19 @@ bool validacion_string(string cadena){
 	
 	int i=0;
 	bool control = true;
+
+	cadena.erase(remove_if(cadena.begin(), cadena.end(), ::isspace), cadena.end());
 	
-	while(i<cadena.size()){
-		if(!isalpha(cadena[i])){
-			control = false;
-			break;
+	if(cadena.empty()){
+		control = false;
+	} else{
+		while(i<cadena.size()){
+			if(!isalpha(cadena[i])){
+				control = false;
+				break;
+			}
+			i++;
 		}
-		i++;
 	}
 	
 	return control;
@@ -334,16 +344,13 @@ int buscarPosProducto(vector<Producto>productos){
 	if(entradaValida){
 		cout << productos.size() << " size" << endl << endl;
 		
-		while(productos[pos].nombreProducto != nombreP && pos<=productos.size()){
+		while(productos[pos].nombreProducto != nombreP && pos<productos.size()){
 			pos++;
 		}
 		
 		cout << endl << pos <<  " pos" << endl; systemPause
 	}else{
-		clearScreen
-		cout<<endl<<setw(6)<<" "<<"Entrada invalida o producto no encontrado... ";
-		
-		systemPause
+		pos = productos.size();
 	}
 	
 	if(pos == productos.size()){
@@ -356,15 +363,17 @@ int buscarPosProducto(vector<Producto>productos){
 void funcionPrueba(vector<Producto>& productos){
 	clearScreen
 
-	bool control = true, ingresoValido = true;
+	bool control = true, ingresoValido = true, cambio = false;
 	string precios, stock;
 
 	int posicion = buscarPosProducto(productos), opcion;
 
-	
+	cout << endl << posicion <<  " pos" << endl; systemPause
 	
 	if(posicion == -1){
-		cout<<endl<<setw(6)<<" "<<"Entrada invalida o producto no encontrado... ";
+		clearScreen
+		cout<<endl<<setw(6)<<" "<<"Entrada invalida o producto no encontrado... " << endl << endl;
+		systemPause
 	}else{
 
 		do{
@@ -375,97 +384,107 @@ void funcionPrueba(vector<Producto>& productos){
 			
 			switch(opcion){
 			
-			case 1:
-				if(control){
-					cout<<endl<<setw(6)<<" "<<"Ingrese el nuevo nombre del producto... ";
-				}
-				else{
-					cout<<endl<<setw(6)<<" "<<"Ingrese un nuevo nombre del producto correcto, por favor... ";
-				}
-				
-				getline(cin, productos[posicion].nombreProducto);
-				
-				control = validacion_string(productos[posicion].nombreProducto);
-				cout << endl << control << endl;
-				systemPause
-			break;
-				
-			case 2:
-				
-				if(control)
-					cout<<endl<<setw(6)<<" "<<"Ingrese el nuevo precio de venta del producto... ";
-				else
-					cout<<endl<<setw(6)<<" "<<"Ingrese un precio de venta correcto, por favor... ";
-				
-				getline(cin, precios);
-				
-				control = validacion_numeros_flotantes(precios, productos[posicion].precioVenta);
-				cout << endl << control << endl;
-				
-				systemPause
+				case 1:
+					if(control){
+						cout<<endl<<setw(6)<<" "<<"Ingrese el nuevo nombre del producto... ";
+					}
+					else{
+						cout<<endl<<setw(6)<<" "<<"Ingrese un nuevo nombre del producto correcto, por favor... ";
+					}
+					
+					getline(cin, productos[posicion].nombreProducto);
+					control = validacion_string(productos[posicion].nombreProducto);
+					cambio = true;
+					cout << endl << control << endl;
+					
+					systemPause
 				break;
-			case 3:
-				if(control)	
-					cout<<endl<<setw(6)<<" "<<"Ingrese el nuevo precio de compra del producto... ";
-				else
-					cout<<endl<<setw(6)<<" "<<"Ingrese un precio de compra correcto, por favor... ";
-				
-				getline(cin, precios);
-				
-				control = validacion_numeros_flotantes(precios, productos[posicion].precioCompra);
-				cout << endl << control << endl;
-				
-				systemPause
-				break;		
-			case 4:
-				if(control)
-					cout<<endl<<setw(6)<<" "<<"Ingrese el nuevo stock del producto... ";
-				else
-					cout<<endl<<setw(6)<<" "<<"Ingrese un numero de stock correcto, por favor... ";
-				
-				getline(cin, stock);
-				
-				control = validacion_numeros_enteros(stock, productos[posicion].stock);
-				cout << endl << control << endl;
-				
-				
-				systemPause
-				break;
-			case 5:
-				if(control)
-					cout<<endl<<setw(6)<<" "<<"Ingrese la nueva categoria del producto... ";
-				else
-					cout<<endl<<setw(6)<<" "<<"Ingrese una categoria correcta, por favor... ";
-				
-				getline(cin, productos[posicion].categoria);
-				
-				control = validacion_string(productos[posicion].categoria);
-				cout << endl << control << endl;
-				
-				systemPause
-				break;	
-			case 6:
-				if(control)
-					cout<<endl<<setw(6)<<" "<<"Ingrese la nueva marca del producto... ";
-				else
-					cout<<endl<<setw(6)<<" "<<"Ingrese una marca del producto correcta, por favor... ";
-				getline(cin,productos[posicion].marca);
-				
-				control = validacion_string(productos[posicion].marca);
-				cout << endl << control << endl;
-				systemPause
-				
-			break;
-			case 7:
-				control = true;
-				break;
+					
+				case 2:
+					
+					if(control)
+						cout<<endl<<setw(6)<<" "<<"Ingrese el nuevo precio de venta del producto... ";
+					else
+						cout<<endl<<setw(6)<<" "<<"Ingrese un precio de venta correcto, por favor... ";
+					
+					getline(cin, precios);
+					
+					control = validacion_numeros_flotantes(precios, productos[posicion].precioVenta);
+					cambio = true;
+					cout << endl << control << endl;
+					
+					systemPause
+					break;
+				case 3:
+					if(control)	
+						cout<<endl<<setw(6)<<" "<<"Ingrese el nuevo precio de compra del producto... ";
+					else
+						cout<<endl<<setw(6)<<" "<<"Ingrese un precio de compra correcto, por favor... ";
+					
+					getline(cin, precios);
+					
+					control = validacion_numeros_flotantes(precios, productos[posicion].precioCompra);
+					cambio = true;
+					cout << endl << control << endl;
+					
+					systemPause
+					break;		
+				case 4:
+					if(control)
+						cout<<endl<<setw(6)<<" "<<"Ingrese el nuevo stock del producto... ";
+					else
+						cout<<endl<<setw(6)<<" "<<"Ingrese un numero de stock correcto, por favor... ";
+					
+					getline(cin, stock);
+					
+					control = validacion_numeros_enteros(stock, productos[posicion].stock);
+					cambio = true;
+					cout << endl << control << endl;
+					
+					
+					systemPause
+					break;
+				case 5:
+					if(control)
+						cout<<endl<<setw(6)<<" "<<"Ingrese la nueva categoria del producto... ";
+					else
+						cout<<endl<<setw(6)<<" "<<"Ingrese una categoria correcta, por favor... ";
+					
+					getline(cin, productos[posicion].categoria);
+					
+					control = validacion_string(productos[posicion].categoria);
+					cambio = true;
+					cout << endl << control << endl;
+					
+					systemPause
+					break;	
+				case 6:
+					if(control)
+						cout<<endl<<setw(6)<<" "<<"Ingrese la nueva marca del producto... ";
+					else
+						cout<<endl<<setw(6)<<" "<<"Ingrese una marca del producto correcta, por favor... ";
+					getline(cin,productos[posicion].marca);
+					
+					control = validacion_string(productos[posicion].marca);
+					cambio = true;
+					cout << endl << control << endl;
+					systemPause
+					break;
+				case 7:
+					control = true;
+					cambio = false;
+					break;
 
-			default:
-				ingresoValido = false;
-				control = false;
+				default:
+					ingresoValido = false;
+					// cambio = true;
+					control = false;
+					break;
 		}
 
-		preguntaActualizacionProducto(productos);
+		if(cambio){
+			preguntaActualizacionProducto(productos, control);
+		}
 			
 		} while(!control);
 
@@ -473,116 +492,6 @@ void funcionPrueba(vector<Producto>& productos){
 	
 }
 
-//void actualizarNuevoProducto(vector<Producto>& productos){
-//	
-//	clearScreen
-//	
-//	int posProdcuto = buscarPosProducto(productos), opcion;
-//	bool controlOpcion = false, ingresoValido  = true;
-//	
-//	if(posProdcuto < 0){
-//		cout << setw(2) << " " <<"Nombre de producto no existente"<<endl;
-//		systemPause
-//	} else{
-//		do{
-//			clearScreen
-//			mostrar_actualizarNuevoProducto(ingresoValido);
-//			cin>>opcion;
-//			switch(opcion){
-//			case 1:
-//				controlOpcion = true;
-//				break;
-//			case 2:
-//				controlOpcion = true;
-//				break;
-//			case 3:
-//				controlOpcion = true;
-//				break;
-//			case 4:
-//				controlOpcion = true;
-//				break;
-//			case 5:
-//				controlOpcion = true;
-//				break;
-//			case 6:
-//				controlOpcion = true;
-//				break;
-//			case 7:
-//				controlOpcion = true;
-//				break;
-//			default:
-//				controlOpcion = false;
-//				ingresoValido = false;
-//				break;
-//			}
-//		} while(controlOpcion != true);
-//		
-//		reemplazarDatosProducto(productos, opcion, posProdcuto);	
-//	}
-//}
-//	
-//void mostrar_actualizarNuevoProducto(bool& ingresoValido){
-//	
-//	cout << endl << setw(30)<<" "<<"Actualizar Producto"<<endl<<endl<<setw(2)
-//		<<endl<<" ============================================================================= "<<endl<<endl
-//		<<setw(6)<<" "<<"1 - Actualizar el nombre del producto"<<endl<<setw(6)<<" "<<"2 - Actualizar el precio de venta del producto"
-//		<<endl<<setw(6)<<" "<<"3 - Actualizar el precio de compra del producto"<<endl<<setw(6)<<" "<<"4 - Actualizar el stock del producto"
-//		<<endl<<setw(6)<<" "<<"5 - Actualizar la categoria del producto"<<endl<<setw(6)<<" "<<"6 - Actualizar la marca del producto"
-//		<<endl<<setw(6)<<" "<<"7 - Volver al menu principal"<<endl<<endl<<endl;
-//	
-//	if(ingresoValido)
-//		cout << endl << setw(2)<< " " << "Ingrese una opcion: ";
-//	else{
-//		cout << endl <<setw(2)<< " " << "Ingrese una opcion valida: ";
-//		ingresoValido = true;
-//	}
-//}
-//
-//void actualizarProductos(vector<Producto>productos, int posicion){
-//	
-//	clearScreen
-//	
-//	int opcion;
-//	bool controlOpcion = false, ingresoValido = true;
-//	
-//	do{
-//		mostrar_actualizarProductos(ingresoValido);
-//		
-//		cin>>opcion;
-//		cin.ignore();
-//		
-//		switch(opcion){
-//		case 1:
-//			controlOpcion = true;
-//			break;
-//		case 2:
-//			controlOpcion = true;
-//			break;
-//		case 3:
-//			controlOpcion = true;
-//			break;
-//		case 4:
-//			controlOpcion = true;
-//			break;
-//		case 5:
-//			controlOpcion = true;
-//			break;
-//		case 6:
-//			controlOpcion = true;
-//			break;
-//		case 7:
-//			controlOpcion = true;
-//			break;
-//		default:
-//			controlOpcion = false;
-//			ingresoValido = false;
-//			break;
-//		}
-//	} while(!controlOpcion);
-//	
-//	reemplazarDatosProducto(productos, opcion, posicion);	
-//	
-//}
 	
 void mostrar_actualizarProductos(bool& ingresoValido){
 	
@@ -600,168 +509,81 @@ void mostrar_actualizarProductos(bool& ingresoValido){
 		ingresoValido = true;
 	}
 }
-	
-//void reemplazarDatosProducto(vector<Producto>& productos, int opcion, int posicion){
-//	
-//	clearScreen
-//	string precios, stock;
-//	bool control = true;
-//	
-//	cout << endl << opcion << endl << posicion << endl;
-//	
-//	do{
-//		clearScreen
-//		cin.ignore();
-//		switch(opcion){
-//			
-//			case 1:
-//				if(control)
-//					cout<<endl<<setw(6)<<" "<<"Ingrese el nuevo nombre del producto... ";
-//				else
-//					cout<<endl<<setw(6)<<" "<<"Ingrese un nuevo nombre del producto correcto, por favor... ";
-//				
-//				getline(cin, productos[posicion].nombreProducto);
-//				
-//				control = validacion_string(productos[posicion].nombreProducto);
-//				cout << endl << control << endl;
-//				systemPause
-//				break;
-//				
-//			case 2:
-//				
-//				if(control)
-//					cout<<endl<<setw(6)<<" "<<"Ingrese el nuevo precio de venta del producto... ";
-//				else
-//					cout<<endl<<setw(6)<<" "<<"Ingrese un precio de venta correcto, por favor... ";
-//				
-//				getline(cin, precios);
-//				
-//				control = validacion_numeros_flotantes(precios, productos[posicion].precioVenta);
-//				cout << endl << control << endl;
-//				
-//				systemPause
-//				break;
-//			case 3:
-//				if(control)	
-//					cout<<endl<<setw(6)<<" "<<"Ingrese el nuevo precio de compra del producto... ";
-//				else
-//					cout<<endl<<setw(6)<<" "<<"Ingrese un precio de compra correcto, por favor... ";
-//				
-//				getline(cin, precios);
-//				
-//				control = validacion_numeros_flotantes(precios, productos[posicion].precioCompra);
-//				cout << endl << control << endl;
-//				
-//				systemPause
-//				break;		
-//			case 4:
-//				if(control)
-//					cout<<endl<<setw(6)<<" "<<"Ingrese el nuevo stock del producto... ";
-//				else
-//					cout<<endl<<setw(6)<<" "<<"Ingrese un numero de stock correcto, por favor... ";
-//				
-//				getline(cin, stock);
-//				
-//				control = validacion_numeros_enteros(stock, productos[posicion].stock);
-//				cout << endl << control << endl;
-//				
-//				
-//				systemPause
-//				break;
-//			case 5:
-//				if(control)
-//					cout<<endl<<setw(6)<<" "<<"Ingrese la nueva categoria del producto... ";
-//				else
-//					cout<<endl<<setw(6)<<" "<<"Ingrese una categor�a correcta, por favor... ";
-//				
-//				getline(cin, productos[posicion].categoria);
-//				
-//				control = validacion_string(productos[posicion].categoria);
-//				cout << endl << control << endl;
-//				
-//				systemPause
-//				break;	
-//			case 6:
-//				if(control)
-//					cout<<endl<<setw(6)<<" "<<"Ingrese la nueva marca del producto... ";
-//				else
-//					cout<<endl<<setw(6)<<" "<<"Ingrese una marca del producto correcta, por favor... ";
-//				getline(cin,productos[posicion].marca);
-//				
-//				control = validacion_string(productos[posicion].marca);
-//				cout << endl << control << endl;
-//				systemPause
-//				
-//			break;
-//			case 7:
-//				control = true;
-//				break;
-//		}
-//		
-//		preguntaActualizacionProducto(productos);
-//		
-//	} while(!control);
-//	
-//}
 
-void preguntaActualizacionProducto(vector<Producto>productos){
+void preguntaActualizacionProducto(vector<Producto>productos, bool& control){
 	
 	int opcion;
-	bool controlQuest = true;
+	bool controlQuest = true, ingresoValido = true;
 
 	do{
 		clearScreen;
-		cout<<endl<<setw(12)<<" "<<"Para continuar seleccione una de las siguientes opciones... "
-			<<endl<<endl<<endl<<setw(6)<<" "<<"1 - Continuar modificando datos del mismo producto"
-			<<endl<<setw(6)<<" "<<"2 - Actualizar los datos de un nuevo producto"
-			<<endl<<setw(6)<<" "<<"3 - Volver al menu principal"
-			<<endl<<endl<<endl<<"Su opcion...  ";
+		mostrar_PreguntaActualizacionProducto(ingresoValido);
 			
 		cin>>opcion;
 		
 		switch(opcion){
 			
-		case 1:
-			controlQuest = true;
-			break;
-		case 2:
-			controlQuest = true;
-			funcionPrueba(productos);
-			break;
-		case 3:
-			controlQuest = true;
-			break;
-		default:
-			controlQuest = false;
-			break;
+			case 1:
+				controlQuest = true;
+				control = false;
+				break;
+			case 2:
+				controlQuest = true;
+				funcionPrueba(productos);
+				break;
+			case 3:
+				controlQuest = true;
+				break;
+			default:
+				controlQuest = false;
+				ingresoValido = false;
+				break;
 		}
 		
 	}while(!controlQuest);
 
 }
+
+void mostrar_PreguntaActualizacionProducto(bool& ingresoValido){
+	cout<<endl<<setw(12)<<" "<<"Para continuar seleccione una de las siguientes opciones... "
+			<<endl<<endl<<endl<<setw(6)<<" "<<"1 - Continuar modificando datos del mismo producto"
+			<<endl<<setw(6)<<" "<<"2 - Actualizar los datos de un nuevo producto"
+			<<endl<<setw(6)<<" "<<"3 - Volver al menu principal" <<endl<<endl<<endl;
+		
+		if(ingresoValido){
+			cout << endl << setw(2)<< " " << "Ingrese una opcion: ";
+		}
+		else{
+			cout << endl <<setw(2)<< " " << "Ingrese una opcion valida: ";
+			ingresoValido = true;
+		}
+}
 	
-void borrarProducto(vector<Producto>&productos){
+void borrarProducto(vector<Producto>&productos, bool& prodRegistrado){
 	
 	clearScreen
 		
-		int posProdcuto = buscarPosProducto(productos), opcion;
+	int posProdcuto = buscarPosProducto(productos);
 	
-	if(posProdcuto>productos.size()){
-		cout<<endl<<setw(6)<<" "<<"Nombre de producto no existente"<<endl<<setw(6)<<" ";
-		cin>>opcion;
-		switch (opcion){
-		default:
-			/*menuPrincipal(p, productos);*/
-			break;
-		}
-	} else{
-		for(int i = productos.size() - 1;i>posProdcuto;i--){
-			productos[i] = productos[i - 1];
-		}
-		productos.pop_back();
-		cout<<"Producto borrado con exito!"<<endl;
+	if(posProdcuto == -1){
+		clearScreen
+		cout<<endl<<setw(6)<<" "<<"Nombre de producto no existente"<<endl;
 		systemPause
-//			menuPrincipal(p, productos);
+	} else{
+		cout << productos.size() << " size" << endl << endl;
+		
+		if(productos.size() == 1){
+			productos.erase(productos.begin() + posProdcuto);
+			prodRegistrado = false;
+			cout << prodRegistrado << endl;
+			systemPause
+		}else{
+			productos.erase(productos.begin() + posProdcuto);
+		}
+		cout << productos.size() << " size" << endl << endl;
+		
+		cout<<setw(6)<<" "<<"Producto borrado con exito!"<<endl;
+		systemPause
 	}
 	
 }
@@ -769,133 +591,268 @@ void borrarProducto(vector<Producto>&productos){
 void buscarProductosCoincidentes(vector<Producto>productos){
 	
 	clearScreen
-		
-		int opcion, precioMin, precioMax;
-	string nombre, categ, marc;
-	vector<Producto>productosNombres;
-	vector<Producto>productosPrecios;
-	vector<Producto>productosCategorias;
-	vector<Producto>productosMarcas;
-	bool controlCoincidencia = false;
+	
+	int opcion;
+
+	bool controlCoincidencia = false, ingresoValido = false;
 	
 	do{
-		cout<<"Seleccione una opcion para realizar el filtrado"<<endl<<endl
-			<<"1 - Busqueda por nombre coincidente"<<endl
-			<<"2 - Busqueda por rango de precios"<<endl
-			<<"3 - Busqueda por categoria"<<endl
-			<<"4 - Busqueda por marca"<<endl
-			<<endl<<"Su opcion...  ";
+		mostrar_busquedaCoincidentes(ingresoValido);
 		cin>>opcion;
 		
 		switch(opcion){
-		case 1:
-			controlCoincidencia = true;
-			break;
-		case 2:
-			controlCoincidencia = true;
-			break;
-		case 3:
-			controlCoincidencia = true;
-			break;
-		case 4:
-			controlCoincidencia = true;
-			break;
-		case 5:
-			controlCoincidencia = true;
-			break;
-		case 6:
-			controlCoincidencia = true;
-			break;
-		case 7:
-			controlCoincidencia = true;
-			break;
-		default:
-			controlCoincidencia = false;
-			break;
-		}
+			case 1:
+				controlCoincidencia = true;
+				buscarPorNombre(productos);
+				break;
+			case 2:
+				controlCoincidencia = true;
+				buscarPorRangoPrecios(productos);
+				break;
+			case 3:
+				controlCoincidencia = true;
+				buscarPorCategoria(productos);
+				break;
+			case 4:
+				controlCoincidencia = true;
+				buscarPorMarca(productos);
+				break;
+			case 5: 
+				controlCoincidencia = true;
+				break;
+
+			default:
+				controlCoincidencia = false;
+				ingresoValido = false;
+				break;
+			}
 	} while(controlCoincidencia != true);
 	
-	switch(opcion){
-	case 1:
-		cin.ignore();
-		cout<<"Ingrese el nombre de los productos para filtrarlos... ";
-		getline(cin,nombre);
+}
+
+void mostrar_busquedaCoincidentes(bool& ingresoValido){
+	cout<< endl << setw(16)<<" ""Seleccione una opcion para realizar el filtrado"<<endl<<endl
+			<<setw(6)<<" "<<"1 - Busqueda por nombre coincidente"<<endl
+			<<setw(6)<<" "<<"2 - Busqueda por rango de precios"<<endl
+			<<setw(6)<<" "<<"3 - Busqueda por categoria"<<endl
+			<<setw(6)<<" "<<"4 - Busqueda por marca"<<endl
+			<<setw(6)<<" "<<"5 - Volver al menu principal"<<endl << endl << endl;
+			
+		if(ingresoValido){
+			cout << endl << setw(2)<< " " << "Ingrese una opcion: ";
+		}
+		else{
+			cout << endl <<setw(2)<< " " << "Ingrese una opcion valida: ";
+			ingresoValido = true;
+		}
+}
+
+
+void buscarPorNombre(vector<Producto>productos){
+	string nombre;
+	bool entradaValida;
+
+	vector<Producto>productosNombres;
+
+	ofstream archivo("prog.txt");	
+	cin.ignore();
+	cout<<"Ingrese el nombre de los productos para filtrarlos... ";
+
+	getline(cin,nombre);
+	
+	entradaValida = validacion_string(nombre);
+
+	if(entradaValida){
 		for(const auto& producto : productos){
 			if(nombre == producto.nombreProducto){
 				productosNombres.push_back(producto);
 			}
 		}
-		break;
-	case 2:
-		cout<<"Ingrese el rango de precio para filtrar los productos... "
-			<<endl<<endl<<"Precio minimo... ";
-		cin>>precioMin;
-		cout<<endl<<endl<<"Precio maximo... ";
-		cin>>precioMax;
+
+		if (archivo.is_open()) {
+			archivo<<endl<<"Lista de "<<nombre<<endl<<endl
+				<<"ID"<<setw(10)<<" "<<"Nombre"<<setw(10)<<" "
+				<<"Precio"<<setw(10)<<" "<<"Stock"<<setw(10)<<" "
+				<<"Categoria"<<setw(10)<<" "<<"Marca"<<setw(10)<<" "<<endl<<endl;
+			
+			for(int i=0;i<productosNombres.size();i++){
+				
+				archivo<<productosNombres[i].idProducto<<setw(10)<<" "<<productosNombres[i].nombreProducto
+					<<setw(10)<<" "<<productosNombres[i].precioVenta<<setw(10)<<" "
+					<<productosNombres[i].stock<<setw(10)<<" "<<productosNombres[i].categoria
+					<<setw(10)<<" "<<productosNombres[i].marca<<endl<<endl;
+			}
+			
+			archivo.close();
+			cout<<endl<<endl<<"Abra el archivo para ver los resultados de el listamiento de los productos... "<<endl<<endl;
+			systemPause
+			
+		} else {
+			cout << "No se pudo abrir el archivo." << endl << endl;
+			systemPause
+		}
+	}else{
+		clearScreen
+		cout << endl << setw(2) << " " << "Entrada no valida... " << endl << endl;
+		systemPause
+	}
+}
+
+void buscarPorRangoPrecios(vector<Producto> productos){
+	ofstream archivo("prog.txt");	
+	
+	double precioMin, precioMax;
+	string precios;
+
+	bool entradaValida1, entradaValida2;
+	vector<Producto>productosPrecios;
+
+	cout<<"Ingrese el rango de precio para filtrar los productos... "
+		<<endl<<endl<<"Precio minimo... ";
+	getline(cin, precios);
+
+	entradaValida1 = validacion_numeros_flotantes(precios, precioMin);
+
+	cout<<endl<<endl<<"Precio maximo... ";
+	getline(cin, precios);
+
+	entradaValida2 = validacion_numeros_flotantes(precios, precioMax);
+
+	if(entradaValida1 && entradaValida2){
 		for(const auto& producto : productos){
 			if(precioMin < producto.precioVenta && precioMax > producto.precioVenta){
 				productosPrecios.push_back(producto);
 			}
 		}
-		break;
-	case 3:
-		cin.ignore();
-		cout<<"Ingrese la categoria para filtrar los productos... ";
-		getline(cin,categ);
+		if (archivo.is_open()) {
+			archivo<<endl<<"Lista de productos entre "<<precioMin<<" y "<<precioMax<<endl<<endl
+				<<"ID"<<setw(10)<<" "<<"Nombre"<<setw(10)<<" "
+				<<"Precio"<<setw(10)<<" "<<"Stock"<<setw(10)<<" "
+				<<"Categoria"<<setw(10)<<" "<<"Marca"<<setw(10)<<" "<<endl<<endl;
+			
+			for(int i=0;i<productosPrecios.size();i++){
+				
+				archivo<<productosPrecios[i].idProducto<<setw(10)<<" "<<productosPrecios[i].nombreProducto
+					<<setw(10)<<" "<<productosPrecios[i].precioVenta<<setw(10)<<" "
+					<<productosPrecios[i].stock<<setw(10)<<" "<<productosPrecios[i].categoria
+					<<setw(10)<<" "<<productosPrecios[i].marca<<endl<<endl;
+				
+			}
+			
+			archivo.close();
+			cout<<endl<<endl<<"Abra el archivo para ver los resultados de el listamiento de los productos... "<<endl<<endl;
+			systemPause
+			
+		} else {
+			cout << "No se pudo abrir el archivo." << endl << endl;
+			systemPause
+		}
+	}else{
+		clearScreen
+		cout << endl << setw(2) << " " << "Entrada no valida... " << endl << endl;
+		systemPause
+	}
+}
+
+void buscarPorCategoria(vector<Producto> productos){
+	vector<Producto>productosCategorias;
+	string categ;
+	bool entradaValida;
+	ofstream archivo("prog.txt");
+	
+	cin.ignore();
+	cout<<"Ingrese la categoria para filtrar los productos... ";
+	getline(cin, categ);
+
+	entradaValida = validacion_string(categ);
+	
+	if(entradaValida){
 		for(const auto& producto : productos){
 			if(categ == producto.categoria){
 				productosCategorias.push_back(producto);
 			}
 		}
-		break;
-	case 4:
+		if (archivo.is_open()) {
+			archivo<<endl<<"Lista de productos  "<<categ<<endl<<endl
+				<<"ID"<<setw(10)<<" "<<"Nombre"<<setw(10)<<" "
+				<<"Precio"<<setw(10)<<" "<<"Stock"<<setw(10)<<" "
+				<<"Categoria"<<setw(10)<<" "<<"Marca"<<setw(10)<<" "<<endl<<endl;
+			
+			for(int i=0;i<productosCategorias.size();i++){
+				
+				archivo<<productosCategorias[i].idProducto<<setw(10)<<" "<<productosCategorias[i].nombreProducto
+					<<setw(10)<<" "<<productosCategorias[i].precioVenta<<setw(10)<<" "
+					<<productosCategorias[i].stock<<setw(10)<<" "<<productosCategorias[i].categoria
+					<<setw(10)<<" "<<productosCategorias[i].marca<<endl<<endl;
+					
+			}
+			
+			archivo.close();
+			cout<<endl<<endl<<"Abra el archivo para ver los resultados de el listamiento de los productos... "<<endl<<endl;
+			systemPause
+			
+		} else {
+			cout << "No se pudo abrir el archivo." << endl << endl;
+			systemPause
+		}
+	}else{
+		clearScreen
+		cout << endl << setw(2) << " " << "Entrada no valida... " << endl << endl;
+		systemPause
+	}
+
+}
+
+void buscarPorMarca(vector<Producto>productos){
+		vector<Producto>productosMarcas;
+		string marc;
+		bool entradaValida;
+		ofstream archivo("prog.txt");
+
 		cin.ignore();
 		cout<<"Ingrese la marca para filtrar los productos... ";
 		getline(cin,marc);
-		for(const auto& producto : productos){
-			if(marc == producto.marca){
-				productosMarcas.push_back(producto);
+		entradaValida = validacion_string(marc);
+		if(entradaValida){
+			
+			for(const auto& producto : productos){
+				if(marc == producto.marca){
+					productosMarcas.push_back(producto);
+				}
 			}
-		}
-		break;
-	}
-	
 
-	/*	switch(opcion){
-	case 1:
-	for(const auto& producto : productos){
-	if(nombre == producto.nombreProducto){
-	productosNombres.push_back(producto);
-	}
-	}
-	break;
-	case 2:
-	for(const auto& producto : productos){
-	if(precioMin < producto.precioVenta && precioMax > producto.precioVenta){
-	productosPrecios.push_back(producto);
-	}
-	}
-	break;
-	case 3:
-	for(const auto& producto : productos){
-	if(categ == producto.categoria){
-	productosCategorias.push_back(producto);
-	}
-	}
-	break;
-	case 4:
-	for(const auto& producto : productos){
-	if(marc == producto.marca){
-	productosMarcas.push_back(producto);
-	}
-	}
-	break;
-	}*/
-	cout<<"Abra el archivo para ver los resultados de la busqueda... "<<endl;
-	systemPause;
-//	menuPrincipal(p, productos);
-	
+			if (archivo.is_open()) {
+				archivo<<endl<<"Lista de productos  "<<marc<<endl<<endl
+					<<"ID"<<setw(10)<<" "<<"Nombre"<<setw(10)<<" "
+					<<"Precio"<<setw(10)<<" "<<"Stock"<<setw(10)<<" "
+					<<"Categoria"<<setw(10)<<" "<<"Marca"<<setw(10)<<" "<<endl<<endl;
+				
+				for(int i=0;i<productosMarcas.size();i++){
+					
+					archivo<<productosMarcas[i].idProducto<<setw(10)<<" "<<productosMarcas[i].nombreProducto
+						<<setw(10)<<" "<<productosMarcas[i].precioVenta<<setw(10)<<" "
+						<<productosMarcas[i].stock<<setw(10)<<" "<<productosMarcas[i].categoria
+						<<setw(10)<<" "<<productosMarcas[i].marca<<endl<<endl;
+					
+				}
+				
+				archivo.close();
+				cout<<endl<<endl<<"Abra el archivo para ver los resultados de el listamiento de los productos... "<<endl<<endl;
+				systemPause
+				
+			} else {
+				cout << "No se pudo abrir el archivo." << endl << endl;
+				systemPause
+			}
+		}else{
+			clearScreen
+			cout << endl << setw(2) << " " << "Entrada no valida... " << endl << endl;
+			systemPause
+		}
 }
+
+
+
 void listarProductos(vector<Producto>&productos){
 	
 	clearScreen
@@ -918,13 +875,10 @@ void listarProductos(vector<Producto>&productos){
 		
 		archivo.close();
 		cout<<endl<<endl<<"Abra el archivo para ver los resultados de el listamiento de los productos... "<<endl<<endl;
-		systemPause
-//			menuPrincipal(p, productos);
-		
+		systemPause		
 	} else {
 		cout << "No se pudo abrir el archivo." << endl << endl;
 		systemPause
-//			menuPrincipal(p, productos);
 	}
 	
 }
