@@ -603,18 +603,22 @@ void buscarProductosCoincidentes(vector<Producto>productos){
 		switch(opcion){
 			case 1:
 				controlCoincidencia = true;
+				clearScreen
 				buscarPorNombre(productos);
 				break;
 			case 2:
 				controlCoincidencia = true;
+				clearScreen
 				buscarPorRangoPrecios(productos);
 				break;
 			case 3:
 				controlCoincidencia = true;
+				clearScreen
 				buscarPorCategoria(productos);
 				break;
 			case 4:
 				controlCoincidencia = true;
+				clearScreen
 				buscarPorMarca(productos);
 				break;
 			case 5: 
@@ -631,8 +635,8 @@ void buscarProductosCoincidentes(vector<Producto>productos){
 }
 
 void mostrar_busquedaCoincidentes(bool& ingresoValido){
-	cout<< endl << setw(16)<<" ""Seleccione una opcion para realizar el filtrado"<<endl<<endl
-			<<setw(6)<<" "<<"1 - Busqueda por nombre coincidente"<<endl
+	cout<< endl << setw(25)<<" ""Seleccione una opcion para realizar el filtrado"<<endl<<endl
+			<<endl<<setw(6)<<" "<<"1 - Busqueda por nombre coincidente"<<endl
 			<<setw(6)<<" "<<"2 - Busqueda por rango de precios"<<endl
 			<<setw(6)<<" "<<"3 - Busqueda por categoria"<<endl
 			<<setw(6)<<" "<<"4 - Busqueda por marca"<<endl
