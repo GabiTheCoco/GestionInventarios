@@ -911,6 +911,7 @@ void listadoProductos(vector<Producto> productos){
 	
 	
 	do{
+		clearScreen
 		mostrar_listadoProductos(ingresoValido);
 		
 		getline(cin, opcion);
