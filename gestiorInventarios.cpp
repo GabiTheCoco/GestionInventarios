@@ -42,14 +42,21 @@ void mostrar_PreguntaActualizacionProducto(bool&);
 void borrarProducto(vector<Producto>&, bool&);
 
 void buscarProductosCoincidentes(vector<Producto>);
+
 void mostrar_busquedaCoincidentes(bool&);
+
 void buscarPorNombre(vector<Producto>);
+
 void buscarPorRangoPrecios(vector<Producto>);
+
 void buscarPorCategoria(vector<Producto>);
+
 void buscarPorMarca(vector<Producto>);
 
-void listarProductos(vector<Producto>&);
-
+void listadoProductos(vector<Producto>);
+void mostrar_listadoProductos(bool&);
+void mostrarProductos(vector<Producto>);
+void guardarListaProductos(vector<Producto>);
 
 
 int main(int argc, char *argv[]) {
@@ -138,7 +145,7 @@ void menuPrincipal(Producto p, vector<Producto>&productos, bool prodRegistrado){
 					  systemPause
 						  break;
 				  } else{
-					  listarProductos(productos);
+					  listadoProductos(productos);
 					  control = false;
 					  break;
 				  }
@@ -381,7 +388,7 @@ void actualizarProductos(vector<Producto>& productos){
 			
 			opcionValida = validacion_numeros_enteros(opcion, opcionElegida);
 			
-			if(opcionElegida){
+			if(opcionValida){
 				cout << endl << endl << control << endl << endl;
 				
 				switch(opcionElegida){
@@ -545,7 +552,7 @@ void preguntaActualizacionProducto(vector<Producto>productos, bool& control){
 		
 		opcionValida = validacion_numeros_enteros(opcion, opcionElegida);
 		
-		if(opcionElegida){
+		if(opcionValida){
 			switch(opcionElegida){
 				
 			case 1:
@@ -634,7 +641,7 @@ void buscarProductosCoincidentes(vector<Producto>productos){
 		
 		opcionValida = validacion_numeros_enteros(opcion, opcionElegida);
 		
-		if(opcionElegida){
+		if(opcionValida){
 			switch(opcionElegida){
 			case 1:
 				controlCoincidencia = true;
@@ -670,7 +677,7 @@ void buscarProductosCoincidentes(vector<Producto>productos){
 		}
 		
 		
-	} while(controlCoincidencia != true);
+	} while(!controlCoincidencia);
 	
 }
 
@@ -895,14 +902,92 @@ void buscarPorMarca(vector<Producto>productos){
 		}
 }
 
-
-
-void listarProductos(vector<Producto>&productos){
+void listadoProductos(vector<Producto> productos){
 	
-	clearScreen
+	string opcion;
+	int opcionElegida;
+	
+	bool control = false, ingresoValido = false, opcionValida = true;
+	
+	
+	do{
+		mostrar_listadoProductos(ingresoValido);
 		
-		ofstream archivo("prog.txt");	
-	if (archivo.is_open()) {
+		getline(cin, opcion);
+		
+		opcionValida = validacion_numeros_enteros(opcion, opcionElegida);
+		
+		if(opcionValida){
+			switch(opcionElegida){
+				case 1:
+					control = true;
+					clearScreen
+						buscarPorNombre(productos);
+					break;
+				case 2:
+					control = true;
+					clearScreen
+						buscarPorRangoPrecios(productos);
+					break;
+				case 3:
+					control = true;
+					clearScreen
+						buscarPorCategoria(productos);
+					break;
+				default:
+					control = false;
+					ingresoValido = false;
+					break;
+			}
+		}else{
+			control = false;
+			ingresoValido = false;
+		}
+		
+	} while(!control);
+
+}
+
+void mostrar_listadoProductos(bool& ingresoValido){
+	cout << endl << setw(30)<<" "<<"Listar Productos"<<endl<<endl<<setw(2)
+		<<endl<<" ============================================================================= "<<endl<<endl
+		<<setw(6)<<" "<<"1 - Mostrar los productos en consola"<<endl<<setw(6)<<" "<<"2 - Guardar la lista de productos en un archivo"
+		<<endl<<setw(6)<<" "<<"Volver al menu principal"<<endl<<endl;
+		
+	if(ingresoValido)
+		cout << endl << setw(2)<< " " << "Ingrese una opcion: ";
+	else{
+		cout << endl <<setw(2)<< " " << "Ingrese una opcion valida: ";
+		ingresoValido = true;
+	}
+}
+
+
+void mostrarProductos(vector<Producto> productos){
+
+	clearScreen
+
+	cout <<endl<<"Lista de productos"<<endl<<endl
+			<<"ID"<<setw(10)<<" "<<"Nombre"<<setw(10)<<" "
+			<<"Precio"<<setw(10)<<" "<<"Stock"<<setw(10)<<" "
+			<<"Categoria"<<setw(10)<<" "<<"Marca"<<setw(10)<<" "<<endl<<endl;
+
+	for(int i=0;i<productos.size();i++){
+			
+		cout<<productos[i].idProducto<<setw(10)<<" "<<productos[i].nombreProducto
+			<<setw(10)<<" "<<productos[i].precioVenta<<setw(10)<<" "
+			<<productos[i].stock<<setw(10)<<" "<<productos[i].categoria
+			<<setw(10)<<" "<<productos[i].marca<<endl<<endl;
+	}
+}
+
+void guardarListaProductos(vector<Producto> productos){
+
+	clearScreen
+	
+	ofstream archivo("prog.txt");
+	
+	if(archivo.is_open()) {
 		archivo<<endl<<"Lista de productos"<<endl<<endl
 			<<"ID"<<setw(10)<<" "<<"Nombre"<<setw(10)<<" "
 			<<"Precio"<<setw(10)<<" "<<"Stock"<<setw(10)<<" "
@@ -918,10 +1003,10 @@ void listarProductos(vector<Producto>&productos){
 		}
 		
 		archivo.close();
-		cout<<endl<<endl<<"Abra el archivo para ver los resultados de el listamiento de los productos... "<<endl<<endl;
+		cout<<endl<<endl<<setw(6)<<" " << "Abra el archivo para ver los resultados de el listamiento de los productos... "<<endl<<endl;
 		systemPause		
 	} else {
-		cout << "No se pudo abrir el archivo." << endl << endl;
+		cout << setw(6)<<" " << "No se pudo abrir el archivo." << endl << endl;
 		systemPause
 	}
 	
