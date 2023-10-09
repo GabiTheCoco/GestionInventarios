@@ -921,19 +921,18 @@ void listadoProductos(vector<Producto> productos){
 		if(opcionValida){
 			switch(opcionElegida){
 				case 1:
-					control = true;
 					clearScreen
-						buscarPorNombre(productos);
+					mostrarProductos(productos);
+					control = false;
 					break;
 				case 2:
-					control = true;
 					clearScreen
-						buscarPorRangoPrecios(productos);
+					guardarListaProductos(productos);
+					control = true;
+					
 					break;
 				case 3:
 					control = true;
-					clearScreen
-						buscarPorCategoria(productos);
 					break;
 				default:
 					control = false;
@@ -953,7 +952,7 @@ void mostrar_listadoProductos(bool& ingresoValido){
 	cout << endl << setw(30)<<" "<<"Listar Productos"<<endl<<endl<<setw(2)
 		<<endl<<" ============================================================================= "<<endl<<endl
 		<<setw(6)<<" "<<"1 - Mostrar los productos en consola"<<endl<<setw(6)<<" "<<"2 - Guardar la lista de productos en un archivo"
-		<<endl<<setw(6)<<" "<<"Volver al menu principal"<<endl<<endl;
+		<<endl<<setw(6)<<" "<<"3 - Volver al menu principal"<<endl<<endl;
 		
 	if(ingresoValido)
 		cout << endl << setw(2)<< " " << "Ingrese una opcion: ";
@@ -968,18 +967,19 @@ void mostrarProductos(vector<Producto> productos){
 
 	clearScreen
 
-	cout <<endl<<"Lista de productos"<<endl<<endl
-			<<"ID"<<setw(10)<<" "<<"Nombre"<<setw(10)<<" "
+	cout <<endl<<setw(6)<<" "<<"Lista de productos"<<endl<<endl
+			<<setw(6)<<" " << "ID"<<setw(10)<<" "<<"Nombre"<<setw(10)<<" "
 			<<"Precio"<<setw(10)<<" "<<"Stock"<<setw(10)<<" "
 			<<"Categoria"<<setw(10)<<" "<<"Marca"<<setw(10)<<" "<<endl<<endl;
 
 	for(int i=0;i<productos.size();i++){
-			
-		cout<<productos[i].idProducto<<setw(10)<<" "<<productos[i].nombreProducto
+		cout<<setw(6)<<" " << productos[i].idProducto<<setw(10)<<" "<<productos[i].nombreProducto
 			<<setw(10)<<" "<<productos[i].precioVenta<<setw(10)<<" "
 			<<productos[i].stock<<setw(10)<<" "<<productos[i].categoria
 			<<setw(10)<<" "<<productos[i].marca<<endl<<endl;
 	}
+	
+	systemPause
 }
 
 void guardarListaProductos(vector<Producto> productos){
@@ -995,12 +995,10 @@ void guardarListaProductos(vector<Producto> productos){
 			<<"Categoria"<<setw(10)<<" "<<"Marca"<<setw(10)<<" "<<endl<<endl;
 		
 		for(int i=0;i<productos.size();i++){
-			
 			archivo<<productos[i].idProducto<<setw(10)<<" "<<productos[i].nombreProducto
 				<<setw(10)<<" "<<productos[i].precioVenta<<setw(10)<<" "
 				<<productos[i].stock<<setw(10)<<" "<<productos[i].categoria
 				<<setw(10)<<" "<<productos[i].marca<<endl<<endl;
-			
 		}
 		
 		archivo.close();
